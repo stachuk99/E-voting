@@ -20,12 +20,6 @@ namespace EVoting_backend.Services
             };
             return GenerateToken(Const.Secret, Const.Issuer, Const.Audiance, expiration, claims);
         }
-        public string GenerateRefreshToken()
-        {
-            //TODO store in config
-            DateTime expiration = DateTime.Now.AddMonths(1);
-            return GenerateToken(Const.Secret, Const.Issuer, Const.Audiance, expiration);
-        }
         private string GenerateToken(string secret, string issuer, string aud, DateTime expiration, IEnumerable<Claim> claims = null)
         {
             var secretBytes = Encoding.UTF8.GetBytes(secret);

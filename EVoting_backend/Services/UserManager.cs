@@ -39,5 +39,34 @@ namespace EVoting_backend.Services
         {
             return await _appDbContext.Users.FirstOrDefaultAsync(p => p.Email == email);
         }
+
+        public async Task<bool> SetToken(string email, string token)
+        {
+            try
+            {
+                User user  = await GetUserByEmail(email);
+                user.Token = token;
+                await _appDbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task ReleaseToken(string email)
+        {
+            try
+            {
+                User user = await GetUserByEmail(email);
+                user.Token = null;
+                await _appDbContext.SaveChangesAsync();
+            }catch (Exception)
+            {
+
+            }
+            
+        }
     }
 }

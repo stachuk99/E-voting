@@ -1,4 +1,5 @@
 ﻿using EVoting_backend.API.Request;
+using EVoting_backend.API.Response;
 using EVoting_backend.DB;
 using EVoting_backend.DB.Models;
 using EVoting_backend.Services;
@@ -30,9 +31,9 @@ namespace EVoting_backend.Controllers
         }
 
         [HttpPost("google-request")]
-        public async Task<IActionResult> GoogleAuthenticationRequets(GoogleLoginRequest token)
+        public async Task<IActionResult> GoogleAuthenticationRequets(GoogleLoginRequest googleToken)
         {
-            var validPayLoad = await GoogleJsonWebSignature.ValidateAsync(token.IdToken);
+            var validPayLoad = await GoogleJsonWebSignature.ValidateAsync(googleToken.IdToken);
             User user = null;
             user = await _userManager.GetUserByEmail(validPayLoad.Email);
             if (user == null)
@@ -42,15 +43,41 @@ namespace EVoting_backend.Controllers
                 var result = await _userManager.AddUser(user);
                 if (result)
                 {
-                    return Ok(await _authenticator.Authenticate(user));
+                    var tokenReponse = await loginUser(user);
+                    if (tokenReponse != null)
+                        return Ok(tokenReponse);
+                    else
+                        return BadRequest("Not logged in");
                 }
                 else
                     return Conflict(result.ToString());
             }
             else
             {
-                return Ok(await _authenticator.Authenticate(user));
+                var tokenReponse = await loginUser(user);
+                if (tokenReponse != null)
+                    return Ok(tokenReponse);
+                else
+                    return BadRequest("Not logged in");
             }
+        }
+
+        private async Task logoutUser(User user)
+        {
+            await _userManager.ReleaseToken(user.Email);
+        }
+
+        private async Task<AuthenticatedResponse> loginUser(User user)
+        {
+            AuthenticatedResponse tokenResponse = await _authenticator.Authenticate(user);
+            if (tokenResponse != null)
+            {
+                var loginResult = await _userManager.SetToken(user.Email, tokenResponse.AccessToken);
+                if (loginResult)
+                    return tokenResponse;
+                else return null;
+            }
+            return null;
         }
     }
 }

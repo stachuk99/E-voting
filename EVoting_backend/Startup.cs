@@ -2,16 +2,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Builder;
 using EVoting_backend.DB;
-using EVoting_backend.DB.Models;
 using EVoting_backend.Services;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
+using Microsoft.AspNetCore.Hosting;
 
 namespace EVoting_backend
 {
@@ -54,17 +52,17 @@ namespace EVoting_backend
             services.AddScoped<TokenManager>();
             services.AddScoped<Authenticator>();
             services.AddAuthentication("OAuth").AddJwtBearer("OAuth", config =>
+            {
+                var secretBytes = Encoding.UTF8.GetBytes(Const.Secret);
+                var key = new SymmetricSecurityKey(secretBytes);
+                config.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    var secretBytes = Encoding.UTF8.GetBytes(Const.Secret);
-                    var key = new SymmetricSecurityKey(secretBytes);
-                    config.TokenValidationParameters = new TokenValidationParameters()
-                    {
-                        ClockSkew = TimeSpan.Zero,
-                        ValidIssuer = Const.Issuer,
-                        ValidAudience = Const.Audiance,
-                        IssuerSigningKey = key
-                    };
-                });
+                    ClockSkew = TimeSpan.Zero,
+                    ValidIssuer = Const.Issuer,
+                    ValidAudience = Const.Audiance,
+                    IssuerSigningKey = key
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
