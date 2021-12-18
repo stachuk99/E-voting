@@ -14,13 +14,13 @@ namespace EVoting_backend.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager _userManager;
         private readonly AppDbContext _dbContext;
         private readonly TokenManager _tokenManager;
         private readonly TokenGenerator _tokenGenerator;
         private readonly Authenticator _authenticator;
 
-        public AuthController(UserManager<User> userManager, AppDbContext dbContext, TokenManager tokenManager, TokenGenerator tokenGenerator, Authenticator authenticator)
+        public AuthController(UserManager userManager, AppDbContext dbContext, TokenManager tokenManager, TokenGenerator tokenGenerator, Authenticator authenticator)
         {
             _userManager = userManager;
             _dbContext = dbContext;
@@ -34,16 +34,13 @@ namespace EVoting_backend.Controllers
         {
             var validPayLoad = await GoogleJsonWebSignature.ValidateAsync(token.IdToken);
             User user = null;
-            user = await _userManager.FindByEmailAsync(validPayLoad.Email);
+            user = await _userManager.GetUserByEmail(validPayLoad.Email);
             if (user == null)
             {
                 user = new User();
                 user.Email = validPayLoad.Email;
-                user.EmailConfirmed = true;
-                user.UserName = validPayLoad.GivenName;
-                user.NormalizedUserName = validPayLoad.GivenName;
-                var result = await _userManager.CreateAsync(user);
-                if (result.Succeeded)
+                var result = await _userManager.AddUser(user);
+                if (result)
                 {
                     return Ok(await _authenticator.Authenticate(user));
                 }

@@ -16,7 +16,6 @@ namespace EVoting_backend.Services
             var claims = new[]
             {
                 new Claim("id", user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Name, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email)
             };
             return GenerateToken(Const.Secret, Const.Issuer, Const.Audiance, expiration, claims);

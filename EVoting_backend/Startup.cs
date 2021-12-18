@@ -50,14 +50,9 @@ namespace EVoting_backend
                 config.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
             services.AddSingleton<TokenGenerator>();
+            services.AddScoped<UserManager>();
             services.AddScoped<TokenManager>();
             services.AddScoped<Authenticator>();
-            services.AddIdentityCore<User>(config =>
-            {
-                config.User.RequireUniqueEmail = true;
-            })
-                .AddEntityFrameworkStores<AppDbContext>()
-                .AddDefaultTokenProviders();
             services.AddAuthentication("OAuth").AddJwtBearer("OAuth", config =>
                 {
                     var secretBytes = Encoding.UTF8.GetBytes(Const.Secret);
