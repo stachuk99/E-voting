@@ -1,4 +1,5 @@
 ﻿using EVoting_backend.API.Request;
+using EVoting_backend.API.Response;
 using EVoting_backend.DB;
 using EVoting_backend.DB.Models;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ namespace EVoting_backend.Services
                 var newFormRes = await _appDbContext.Form.AddAsync(new Form { Name = formRequest.Name, From = formRequest.From, To = formRequest.To });
                 foreach (var sf in formRequest.SubForms)
                 {
-                    var newSFRes = await _appDbContext.SubForm.AddAsync(new SubForm { Type = sf.Type, Form = newFormRes.Entity });
+                    var newSFRes = await _appDbContext.SubForm.AddAsync(new SubForm { ChoicesLimit = sf.ChoicesLimit, Form = newFormRes.Entity });
                     foreach (var fo in sf.Options)
                     {
                         var newFORes = await _appDbContext.FormOption.AddAsync(new FormOption { Ident = fo.Ident, Name = fo.Name, SubForm = newSFRes.Entity });
@@ -57,6 +58,38 @@ namespace EVoting_backend.Services
             {
                 return false;
             }
+        }
+
+        public async Task<FormDefinitionsResponse[]> ListForms(DateTime date)
+        {
+            var forms = await _appDbContext.Form
+                .Include(p => p.SubForms)
+                .Where(p => p.From <= date && p.To >= date)
+                .Select(p => new FormDefinitionsResponse
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    From = p.From,
+                    To = p.To,
+                    SubForms = p.SubForms
+                    .Select(
+                        r => new SubFormResponse
+                        {
+                            Id = r.Id,
+                            ChoicesLimit = r.ChoicesLimit,
+                            Options = r.Options
+                                .Select(
+                                    x => new FormOptionResponse
+                                    {
+                                        Ident = x.Ident,
+                                        Name = x.Name,
+                                    }
+                                ).ToList()
+                        }
+                    ).ToList()
+                }).ToArrayAsync();
+
+            return forms;
         }
     }
 }

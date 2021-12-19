@@ -4,9 +4,12 @@ using EVoting_backend.DB;
 using EVoting_backend.DB.Models;
 using EVoting_backend.Services;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EVoting_backend.Controllers
@@ -62,9 +65,17 @@ namespace EVoting_backend.Controllers
             }
         }
 
-        private async Task logoutUser(User user)
+
+        [HttpDelete("logout")]
+        [Authorize(AuthenticationSchemes = "OAuth")]
+        public async Task<IActionResult> LogoutUser()
         {
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
+            User user = await _userManager.GetUserByEmail(requestUserMail);
             await _userManager.ReleaseToken(user.Email);
+            return NoContent();
         }
 
         private async Task<AuthenticatedResponse> loginUser(User user)

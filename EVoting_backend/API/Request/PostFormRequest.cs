@@ -14,7 +14,7 @@ namespace EVoting_backend.API.Request
 
     public class SubFormRequest
     {
-        public SubFormType Type { get; set; }
+        public int ChoicesLimit { get;set; }
         public List<FormOptionRequest> Options { get; set; }
     }
 

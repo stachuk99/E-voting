@@ -1,9 +1,11 @@
 ﻿using EVoting_backend.API.Request;
+using EVoting_backend.API.Response;
 using EVoting_backend.DB.Models;
 using EVoting_backend.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -26,18 +28,17 @@ namespace EVoting_backend.Controllers
         }
 
         [HttpPost("definition")]
-        //[Authorize(AuthenticationSchemes = "OAuth")]
+        [Authorize(AuthenticationSchemes = "OAuth")]
         public async Task<IActionResult> PostForm(PostFormRequest formRequest)
         {
-            //var accessToken = await HttpContext.GetTokenAsync("access_token");
-            //var identity = HttpContext.User.Identity as ClaimsIdentity;
-            //var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
-            //User user = await _userManager.GetUserByEmail(requestUserMail);
-            //if (user.Token != accessToken) return Unauthorized();
-            
-            if(await _formManager.AddForm(formRequest))
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
+            User user = await _userManager.GetUserByEmail(requestUserMail);
+            if (user.Email != Const.AdminMail || user.Token != accessToken) return Unauthorized();
+
+            if (await _formManager.AddForm(formRequest))
             {
-                //await _userManager.ReleaseToken(user.Email);
                 return Ok();
             }
             else
@@ -65,6 +66,20 @@ namespace EVoting_backend.Controllers
             {
                 return BadRequest("Error");
             }
+        }
+
+        [HttpGet("")]
+        [Authorize(AuthenticationSchemes = "OAuth")]
+        public async Task<IActionResult> GetForms()
+        {
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
+            User user = await _userManager.GetUserByEmail(requestUserMail);
+            if (user.Token != accessToken) return Unauthorized();
+
+            var forms = await _formManager.ListForms(DateTime.Now);
+            return Ok(forms);
         }
     }
 }

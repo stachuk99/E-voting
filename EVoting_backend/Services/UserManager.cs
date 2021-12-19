@@ -19,7 +19,7 @@ namespace EVoting_backend.Services
         {
             try
             {
-                _appDbContext.Users.Add(user);
+                await _appDbContext.Users.AddAsync(user);
                 await _appDbContext.SaveChangesAsync();
                 return true;
             }catch(Exception)
@@ -57,16 +57,9 @@ namespace EVoting_backend.Services
 
         public async Task ReleaseToken(string email)
         {
-            try
-            {
-                User user = await GetUserByEmail(email);
-                user.Token = null;
-                await _appDbContext.SaveChangesAsync();
-            }catch (Exception)
-            {
-
-            }
-            
+            User user = await GetUserByEmail(email);
+            user.Token = null;
+            await _appDbContext.SaveChangesAsync();
         }
     }
 }
