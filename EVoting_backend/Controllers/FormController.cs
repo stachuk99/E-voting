@@ -1,4 +1,5 @@
-﻿using EVoting_backend.DB.Models;
+﻿using EVoting_backend.API.Request;
+using EVoting_backend.DB.Models;
 using EVoting_backend.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -16,27 +17,36 @@ namespace EVoting_backend.Controllers
     {
 
         private readonly UserManager _userManager;
+        private readonly FormManager _formManager;
 
-        public FormController(UserManager userManager)
+        public FormController(UserManager userManager, FormManager formManager)
         {
             _userManager = userManager;
+            _formManager = formManager;
         }
 
-        [HttpPost("")]
-        [Authorize(AuthenticationSchemes = "OAuth")]
-        public async Task<IActionResult> PostForm(object testObject)
+        [HttpPost("definition")]
+        //[Authorize(AuthenticationSchemes = "OAuth")]
+        public async Task<IActionResult> PostForm(PostFormRequest formRequest)
         {
-            var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-            var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
-            User user = await _userManager.GetUserByEmail(requestUserMail);
-            if (user.Token != accessToken) return Unauthorized();
-            //DOWORK
+            //var accessToken = await HttpContext.GetTokenAsync("access_token");
+            //var identity = HttpContext.User.Identity as ClaimsIdentity;
+            //var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
+            //User user = await _userManager.GetUserByEmail(requestUserMail);
+            //if (user.Token != accessToken) return Unauthorized();
+            
+            if(await _formManager.AddForm(formRequest))
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Wrong scheme");
+            }
 
 
-            await _userManager.ReleaseToken(user.Email);
-
-            return Ok("Hello world");
+            //await _userManager.ReleaseToken(user.Email);
         }
+
     }
 }

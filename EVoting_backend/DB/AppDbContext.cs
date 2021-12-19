@@ -14,9 +14,25 @@ namespace EVoting_backend.DB
         public DbSet<User> Users { get; set; }
         public DbSet<Form> Form { get; set; }
         public DbSet<UserVoted> UserVotes { get; set; }
+        public DbSet<SubForm> SubForm { get; set; }
+        public DbSet<FormOption> FormOption { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            builder.Entity<UserVoted>()
+                .HasOne(uv => uv.User)
+                .WithMany(u => u.Votes)
+                .HasForeignKey(uv => uv.UserId);
+            builder.Entity<SubForm>()
+                .HasOne(sf => sf.Form)
+                .WithMany(f => f.SubForms)
+                .HasForeignKey(sf => sf.FormId);
+            builder.Entity<FormOption>()
+                .HasOne(fo => fo.SubForm)
+                .WithMany(sf => sf.Options)
+                .HasForeignKey(fo => fo.SubFormId);
+
             base.OnModelCreating(builder);
+
         }
     }
 }

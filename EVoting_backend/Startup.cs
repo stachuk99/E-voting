@@ -48,6 +48,7 @@ namespace EVoting_backend
                 config.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
             services.AddSingleton<TokenGenerator>();
+            services.AddScoped<FormManager>();
             services.AddScoped<UserManager>();
             services.AddScoped<TokenManager>();
             services.AddScoped<Authenticator>();
