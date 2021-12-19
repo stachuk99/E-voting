@@ -13,6 +13,7 @@ namespace EVoting_backend.DB.Models
         public Guid Id { get; set; }
         public string Email { get; set; }
         public string Token { get; set; }
+        public string Secret { get; set; } 
         public ICollection<UserVoted> Votes { get; set; }
     }
 }

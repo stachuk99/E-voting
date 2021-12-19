@@ -15,12 +15,13 @@ namespace EVoting_backend.Services
             _tokenRepository = tokenRepository;
         }
 
-        public Task<AuthenticatedResponse> Authenticate(User user)
+        public Task<AuthenticatedResponse> Authenticate(User user, string key)
         {
             string accessToken = _tokenGenerator.GenerateAccessToken(user);
             return Task.FromResult(new AuthenticatedResponse
             {
-                AccessToken = accessToken
+                AccessToken = accessToken,
+                PublicKey = key
             });
         }
 

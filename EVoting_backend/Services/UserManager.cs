@@ -61,5 +61,20 @@ namespace EVoting_backend.Services
             user.Token = null;
             await _appDbContext.SaveChangesAsync();
         }
+
+        public async Task<bool> SetSecret(string email, string secret)
+        {
+            try
+            {
+                User user = await GetUserByEmail(email);
+                user.Secret = secret;
+                await _appDbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }
