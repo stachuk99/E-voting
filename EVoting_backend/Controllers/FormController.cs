@@ -37,16 +37,34 @@ namespace EVoting_backend.Controllers
             
             if(await _formManager.AddForm(formRequest))
             {
+                //await _userManager.ReleaseToken(user.Email);
                 return Ok();
             }
             else
             {
                 return BadRequest("Wrong scheme");
             }
-
-
-            //await _userManager.ReleaseToken(user.Email);
         }
 
+        [HttpPost("vote")]
+        [Authorize(AuthenticationSchemes = "OAuth")]
+        public async Task<IActionResult> PostVote(PostVoteRequest voteRequest)
+        {
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
+            User user = await _userManager.GetUserByEmail(requestUserMail);
+            if (user.Token != accessToken) return Unauthorized();
+
+            if(await _formManager.AddVote(user.Email, voteRequest))
+            {
+                await _userManager.ReleaseToken(user.Email);
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Error");
+            }
+        }
     }
 }

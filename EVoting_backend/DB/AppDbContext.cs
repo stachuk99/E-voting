@@ -16,6 +16,7 @@ namespace EVoting_backend.DB
         public DbSet<UserVoted> UserVotes { get; set; }
         public DbSet<SubForm> SubForm { get; set; }
         public DbSet<FormOption> FormOption { get; set; }
+        public DbSet<Vote> Vote { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<UserVoted>()

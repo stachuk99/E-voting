@@ -1,8 +1,10 @@
 ﻿using EVoting_backend.API.Request;
 using EVoting_backend.DB;
 using EVoting_backend.DB.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EVoting_backend.Services
@@ -33,6 +35,25 @@ namespace EVoting_backend.Services
                 return true;
             }
             catch(Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> AddVote(string userMail, PostVoteRequest voteRequest)
+        {
+            var user = await _appDbContext.Users.Include(p => p.Votes).FirstOrDefaultAsync(p => p.Email == userMail);
+            var form = await _appDbContext.Form.FindAsync(voteRequest.FormId);
+            if(form == null || user == null) return false;
+            if(user.Votes.Any(p => p.FormId == voteRequest.FormId)) return false;
+            try
+            {
+                await _appDbContext.Vote.AddAsync(new Vote { Data = voteRequest.VoteData });
+                await _appDbContext.UserVotes.AddAsync(new UserVoted { Form = form, User = user });
+                await _appDbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
             {
                 return false;
             }
