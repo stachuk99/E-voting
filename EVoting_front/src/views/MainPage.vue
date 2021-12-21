@@ -16,7 +16,7 @@
                     const googleUser = await this.$gAuth.signIn();
                     var idToken = googleUser.getAuthResponse().id_token;
                     const response = await fetch(
-                        "api/auth/google-request",
+                        "https://localhost:5001/api/auth/google-request",
                         {
                             method: "POST",
                             headers: {

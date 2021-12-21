@@ -80,6 +80,8 @@ namespace EVoting_backend
 
             app.UseRouting();
 
+            app.UseCors(origins);
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
