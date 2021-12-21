@@ -94,9 +94,6 @@ namespace EVoting_backend.DB.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Secret")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Token")
                         .HasColumnType("nvarchar(max)");
 
