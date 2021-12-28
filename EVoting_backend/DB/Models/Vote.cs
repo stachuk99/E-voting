@@ -11,7 +11,8 @@ namespace EVoting_backend.DB.Models
         public Guid Id { get; set; }
         [Column(TypeName = "text")]
         public string Data { get; set; }
-
+        public int FormId { get; set; }
+        public Form Form { get; set; }
 
     }
 }

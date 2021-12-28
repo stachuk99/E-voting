@@ -15,6 +15,7 @@
                     const fetchHelper = new FetchHelper();
                     const googleUser = await this.$gAuth.signIn();
                     var idToken = googleUser.getAuthResponse().id_token;
+                    var PublicKey = "publicsample";
                     const response = await fetch(
                         "https://localhost:5001/api/auth/google-request",
                         {
@@ -24,6 +25,7 @@
                             },
                             body: JSON.stringify({
                                 idToken,
+                                PublicKey
                             }),
                         }
                     )

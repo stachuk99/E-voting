@@ -14,5 +14,6 @@ namespace EVoting_backend.DB.Models
         public DateTime From { get; set; }
         public DateTime To { get; set; }
         public ICollection<SubForm> SubForms { get; set; }
+        public ICollection<Vote> Votes { get; set; }
     }
 }

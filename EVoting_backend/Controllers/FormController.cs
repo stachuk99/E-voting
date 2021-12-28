@@ -81,5 +81,20 @@ namespace EVoting_backend.Controllers
             var forms = await _formManager.ListForms(DateTime.Now);
             return Ok(forms);
         }
+
+        [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = "OAuth")]
+        public async Task<IActionResult> CountVotes(int id)
+        {
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var requestUserMail = identity.FindFirst(ClaimTypes.Email)?.Value;
+            User user = await _userManager.GetUserByEmail(requestUserMail);
+            if (user.Token != accessToken) return Unauthorized();
+
+            _formManager.CountVotes(id);
+
+            return Ok();
+        }
     }
 }

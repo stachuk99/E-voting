@@ -2,10 +2,13 @@
 using EVoting_backend.API.Response;
 using EVoting_backend.DB;
 using EVoting_backend.DB.Models;
+using EVoting_backend.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace EVoting_backend.Services
@@ -49,7 +52,7 @@ namespace EVoting_backend.Services
             if(user.Votes.Any(p => p.FormId == voteRequest.FormId)) return false;
             try
             {
-                await _appDbContext.Vote.AddAsync(new Vote { Data = voteRequest.VoteData });
+                await _appDbContext.Vote.AddAsync(new Vote { Data = voteRequest.VoteData, Form = form });
                 await _appDbContext.UserVotes.AddAsync(new UserVoted { Form = form, User = user });
                 await _appDbContext.SaveChangesAsync();
                 return true;
@@ -90,6 +93,58 @@ namespace EVoting_backend.Services
                 }).ToArrayAsync();
 
             return forms;
+        }
+
+        public async Task CountVotes(int id)
+        {
+            var votes = _appDbContext.Vote.Where(p => p.FormId == id).ToList();
+            var formDB = _appDbContext.Form.Find(id);
+            foreach (var rawVote in votes)
+            {
+                try
+                {
+                    var vote = JsonSerializer.Deserialize<VoteModel>(Encoding.UTF8.GetString(Convert.FromBase64String(rawVote.Data)));
+                    if (!isVoteValid(vote)) 
+                        continue;
+                    foreach(var sfDB in formDB.SubForms)
+                    {
+                        var sf = vote.SubForms.First(p => p.Id == sfDB.Id);
+                        int choices = 0;
+                        int countedOptions = 0;
+                        foreach(var optDB in sfDB.Options)
+                        {
+                            var opt = sf.Options.FirstOrDefault(p => p.Ident == optDB.Ident);
+                            if (opt.Checked) optDB.Count++;
+                        }
+                    }
+                }catch(Exception) 
+                { 
+
+                }
+            }
+            await _appDbContext.SaveChangesAsync();
+        }
+
+        private bool isVoteValid(VoteModel vote)
+        {
+            var voteDB = _appDbContext.Form.Include(p => p.SubForms).ThenInclude(p => p.Options).FirstOrDefault(p => p.Id == vote.FormId);
+            if(voteDB == null) return false;
+            foreach(var sfDB in voteDB.SubForms)
+            {
+                var sf = vote.SubForms.FirstOrDefault(s => s.Id == sfDB.Id);
+                if(sf == null) return false;
+                for(int i=1; i<=sfDB.Options.Count; i++)
+                {
+                    var optDB = sfDB.Options.FirstOrDefault(p => p.Ident==i);
+                    if(optDB == null) 
+                        return false;
+                    var opt = sf.Options.FirstOrDefault(p => p.Ident == i);
+                    if (opt == null) 
+                        return false;
+                }
+                if (sf.Options.Count(p => p.Checked) > sfDB.ChoicesLimit) return false;
+            }
+            return true;
         }
     }
 }

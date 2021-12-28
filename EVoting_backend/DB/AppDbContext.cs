@@ -31,6 +31,10 @@ namespace EVoting_backend.DB
                 .HasOne(fo => fo.SubForm)
                 .WithMany(sf => sf.Options)
                 .HasForeignKey(fo => fo.SubFormId);
+            builder.Entity<Vote>()
+                .HasOne(v => v.Form)
+                .WithMany(f => f.Votes)
+                .HasForeignKey(v => v.FormId);
 
             base.OnModelCreating(builder);
 
