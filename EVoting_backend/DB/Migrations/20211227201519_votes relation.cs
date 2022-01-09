@@ -13,11 +13,6 @@ namespace EVoting_backend.DB.Migrations
                 nullable: false,
                 defaultValue: 0);
 
-            migrationBuilder.AddColumn<string>(
-                name: "Secret",
-                table: "Users",
-                type: "nvarchar(max)",
-                nullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vote_FormId",
@@ -47,9 +42,6 @@ namespace EVoting_backend.DB.Migrations
                 name: "FormId",
                 table: "Vote");
 
-            migrationBuilder.DropColumn(
-                name: "Secret",
-                table: "Users");
         }
     }
 }
