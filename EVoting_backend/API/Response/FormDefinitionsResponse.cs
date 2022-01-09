@@ -15,6 +15,7 @@ namespace EVoting_backend.API.Response
     public class SubFormResponse
     {
         public int Id { get; set; }
+        public string Name { get; set; }
         public int ChoicesLimit { get; set; }
         public List<FormOptionResponse> Options { get; set; }
     }

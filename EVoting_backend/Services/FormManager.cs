@@ -29,7 +29,7 @@ namespace EVoting_backend.Services
                 var newFormRes = await _appDbContext.Form.AddAsync(new Form { Name = formRequest.Name, From = formRequest.From, To = formRequest.To });
                 foreach (var sf in formRequest.SubForms)
                 {
-                    var newSFRes = await _appDbContext.SubForm.AddAsync(new SubForm { ChoicesLimit = sf.ChoicesLimit, Form = newFormRes.Entity });
+                    var newSFRes = await _appDbContext.SubForm.AddAsync(new SubForm {Name = sf.Name, ChoicesLimit = sf.ChoicesLimit, Form = newFormRes.Entity });
                     foreach (var fo in sf.Options)
                     {
                         var newFORes = await _appDbContext.FormOption.AddAsync(new FormOption { Ident = fo.Ident, Name = fo.Name, SubForm = newSFRes.Entity });
@@ -79,6 +79,7 @@ namespace EVoting_backend.Services
                         r => new SubFormResponse
                         {
                             Id = r.Id,
+                            Name = r.Name,
                             ChoicesLimit = r.ChoicesLimit,
                             Options = r.Options
                                 .Select(
