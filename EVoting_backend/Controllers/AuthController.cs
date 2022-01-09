@@ -40,21 +40,21 @@ namespace EVoting_backend.Controllers
         public async Task<IActionResult> GoogleAuthenticationRequets(GoogleLoginRequest googleToken)
         {
             var validPayLoad = await GoogleJsonWebSignature.ValidateAsync(googleToken.IdToken);
-            //var validClientKey = await GoogleJsonWebSignature.ValidateAsync(googleToken.PublicKey);
+            var validClientKey = googleToken.PublicKey;
             User user = null;
             user = await _userManager.GetUserByEmail(validPayLoad.Email);
             string sharedKey = "";
             string ServerPublicKey = "";
-            //using (ECDiffieHellman server = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256))
-            //{
-            //    ServerPublicKey = Convert.ToBase64String(server.ExportSubjectPublicKeyInfo());
-            //    Console.WriteLine("Alice's public:        " + ServerPublicKey);
-            //    Console.WriteLine("Alice's private:       " + Convert.ToBase64String(server.ExportPkcs8PrivateKey()));
-            //    ECDiffieHellman bob = ECDiffieHellman.Create();
-            //    bob.ImportSubjectPublicKeyInfo(Convert.FromBase64String(JsonConvert.ToString(validClientKey)), out _);
-            //    byte[] sharedSecret = server.DeriveKeyMaterial(bob.PublicKey);
-            //    sharedKey = Convert.ToBase64String(sharedSecret);
-            //}
+            using (ECDiffieHellman server = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256))
+            {
+                ServerPublicKey = Convert.ToBase64String(server.ExportSubjectPublicKeyInfo());
+                Console.WriteLine("Alice's public:        " + ServerPublicKey);
+                Console.WriteLine("Alice's private:       " + Convert.ToBase64String(server.ExportPkcs8PrivateKey()));
+                ECDiffieHellman bob = ECDiffieHellman.Create();
+                bob.ImportSubjectPublicKeyInfo(Convert.FromBase64String(validClientKey), out _);
+                byte[] sharedSecret = server.DeriveKeyMaterial(bob.PublicKey);
+                sharedKey = Convert.ToBase64String(sharedSecret);
+            }
             if (user == null)
             {
                 user = new User();
