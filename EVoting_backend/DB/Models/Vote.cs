@@ -13,6 +13,8 @@ namespace EVoting_backend.DB.Models
         public string Data { get; set; }
         public int FormId { get; set; }
         public Form Form { get; set; }
+        public string iv { get; set; }
+        public string Secret { get; set; }
 
     }
 }

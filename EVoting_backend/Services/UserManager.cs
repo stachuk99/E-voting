@@ -76,5 +76,20 @@ namespace EVoting_backend.Services
                 return false;
             }
         }
+
+        public async Task<bool> SetIV(string email, string iv)
+        {
+            try
+            {
+                User user = await GetUserByEmail(email);
+                user.iv = iv;
+                await _appDbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

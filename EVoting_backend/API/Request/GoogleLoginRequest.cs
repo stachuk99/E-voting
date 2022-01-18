@@ -9,5 +9,8 @@ namespace EVoting_backend.API.Request
 
         [JsonPropertyName("PublicKey")]
         public string PublicKey { get; set; }
+
+        [JsonPropertyName("iv")]
+        public string iv { get; set; }
     }
 }

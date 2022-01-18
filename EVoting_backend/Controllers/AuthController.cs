@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace EVoting_backend.Controllers
@@ -41,6 +42,7 @@ namespace EVoting_backend.Controllers
         {
             var validPayLoad = await GoogleJsonWebSignature.ValidateAsync(googleToken.IdToken);
             var validClientKey = googleToken.PublicKey;
+ 
             User user = null;
             user = await _userManager.GetUserByEmail(validPayLoad.Email);
             string sharedKey = "";
@@ -60,6 +62,7 @@ namespace EVoting_backend.Controllers
                 user = new User();
                 user.Email = validPayLoad.Email;
                 user.Secret = sharedKey;
+                user.iv = googleToken.iv;
                 var result = await _userManager.AddUser(user);
                 if (result)
                 {
@@ -74,6 +77,8 @@ namespace EVoting_backend.Controllers
             }
             else
             {
+                await _userManager.SetSecret(user.Email, sharedKey);
+                await _userManager.SetIV(user.Email, googleToken.iv);
                 var tokenReponse = await loginUser(user, ServerPublicKey);
                 if (tokenReponse != null)
                     return Ok(tokenReponse);

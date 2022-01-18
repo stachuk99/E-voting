@@ -6,7 +6,9 @@ using EVoting_backend.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -52,7 +54,7 @@ namespace EVoting_backend.Services
             if(user.Votes.Any(p => p.FormId == voteRequest.FormId)) return false;
             try
             {
-                await _appDbContext.Vote.AddAsync(new Vote { Data = voteRequest.VoteData, Form = form });
+                await _appDbContext.Vote.AddAsync(new Vote { Data = voteRequest.VoteData, Form = form, iv= user.iv, Secret=user.Secret });
                 await _appDbContext.UserVotes.AddAsync(new UserVoted { Form = form, User = user });
                 await _appDbContext.SaveChangesAsync();
                 return true;
@@ -104,7 +106,13 @@ namespace EVoting_backend.Services
             {
                 try
                 {
-                    var vote = JsonSerializer.Deserialize<VoteModel>(Encoding.UTF8.GetString(Convert.FromBase64String(rawVote.Data)));
+                    byte[] biv = Encoding.UTF8.GetBytes(rawVote.iv);
+                    byte[] bSecret = Convert.FromBase64String(rawVote.Secret);
+                    byte[] bdata = Convert.FromBase64String(rawVote.Data);
+                    string ddd = Convert.ToBase64String(bdata);
+                    string ddc = Convert.ToBase64String(bSecret);
+                    var vote = JsonSerializer.Deserialize<VoteModel>(DecryptStringFromBytes(bdata, bSecret, biv));
+                    Console.WriteLine(vote);
                     if (!isVoteValid(vote)) 
                         continue;
                     foreach(var sfDB in formDB.SubForms)
@@ -118,7 +126,7 @@ namespace EVoting_backend.Services
                             if (opt.Checked) optDB.Count++;
                         }
                     }
-                }catch(Exception) 
+                }catch(Exception e) 
                 { 
 
                 }
@@ -147,5 +155,51 @@ namespace EVoting_backend.Services
             }
             return true;
         }
+
+        static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
+        {
+            // Check arguments.
+            if (cipherText == null || cipherText.Length <= 0)
+                throw new ArgumentNullException("cipherText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("IV");
+
+            // Declare the string used to hold
+            // the decrypted text.
+            string plaintext = null;
+
+            // Create an Aes object
+            // with the specified key and IV.
+            using (Aes aesAlg = Aes.Create())
+            {
+                aesAlg.Key = Key;
+                aesAlg.IV = IV;
+                aesAlg.Mode = CipherMode.CBC;
+                aesAlg.Padding = PaddingMode.PKCS7;
+
+                // Create a decryptor to perform the stream transform.
+                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+                // Create the streams used for decryption.
+                using (MemoryStream msDecrypt = new MemoryStream(cipherText))
+                {
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                        {
+
+                            // Read the decrypted bytes from the decrypting stream
+                            // and place them in a string.
+                            plaintext = srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
+            }
+
+            return plaintext;
+        }
+
     }
 }
