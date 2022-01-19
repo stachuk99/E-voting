@@ -111,7 +111,9 @@ namespace EVoting_backend.Services
                     byte[] bdata = Convert.FromBase64String(rawVote.Data);
                     string ddd = Convert.ToBase64String(bdata);
                     string ddc = Convert.ToBase64String(bSecret);
-                    var vote = JsonSerializer.Deserialize<VoteModel>(DecryptStringFromBytes(bdata, bSecret, biv));
+                    string decrypted = DecryptStringFromBytes(bdata, bSecret, biv);
+                    Console.WriteLine(decrypted);
+                    var vote = JsonSerializer.Deserialize<VoteModel>(decrypted);
                     Console.WriteLine(vote);
                     if (!isVoteValid(vote)) 
                         continue;
@@ -127,8 +129,8 @@ namespace EVoting_backend.Services
                         }
                     }
                 }catch(Exception e) 
-                { 
-
+                {
+                    Console.WriteLine(e.Message);
                 }
             }
             await _appDbContext.SaveChangesAsync();
